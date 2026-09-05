@@ -38,6 +38,20 @@ public class RoomService(AppDbContext db) : IRoomService
         return MapToDto(room);
     }
 
+    public async Task DeleteRoomAsync(int id)
+    {
+        var room = await db.Rooms.FindAsync(id)
+            ?? throw new KeyNotFoundException($"Зал з ID {id} не знайдено");
+
+        // Prevent deletion if the room has existing bookings
+        var hasBookings = await db.Bookings.AnyAsync(b => b.RoomId == id);
+        if (hasBookings)
+            throw new InvalidOperationException($"Неможливо видалити зал з ID {id}: існують пов'язані бронювання");
+
+        db.Rooms.Remove(room);
+        await db.SaveChangesAsync();
+    }
+
     // Maps a Room entity to RoomResponseDto
     private static RoomResponseDto MapToDto(Room room) => new()
     {

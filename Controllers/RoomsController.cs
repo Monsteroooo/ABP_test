@@ -40,4 +40,29 @@ public class RoomsController(IRoomService roomService) : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    /// <summary>Deletes a conference room. Fails if the room has existing bookings.</summary>
+    /// <response code="204">Room deleted successfully.</response>
+    /// <response code="404">Room not found.</response>
+    /// <response code="409">Room has existing bookings and cannot be deleted.</response>
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DeleteRoom(int id)
+    {
+        try
+        {
+            await roomService.DeleteRoomAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
 }
