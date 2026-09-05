@@ -52,6 +52,43 @@ public class RoomService(AppDbContext db) : IRoomService
         await db.SaveChangesAsync();
     }
 
+    public async Task<IEnumerable<RoomResponseDto>> SearchAvailableRoomsAsync(SearchRoomsDto dto)
+    {
+        ValidateSearchParams(dto);
+
+        var requestedStart = dto.Date.ToDateTime(dto.StartTime);
+        var requestedEnd   = dto.Date.ToDateTime(dto.EndTime);
+
+        // Load rooms with sufficient capacity and their bookings
+        var rooms = await db.Rooms
+            .Where(r => r.Capacity >= dto.Capacity)
+            .Include(r => r.Bookings)
+            .ToListAsync();
+
+        // Filter in memory: exclude rooms where any booking overlaps the requested slot
+        return rooms
+            .Where(r => !r.Bookings.Any(b =>
+            {
+                var bookingEnd = b.StartTime.AddHours((double)b.DurationHours);
+                // Overlap: booking starts before requested end AND booking ends after requested start
+                return b.StartTime < requestedEnd && bookingEnd > requestedStart;
+            }))
+            .Select(MapToDto);
+    }
+
+    // Validates that the search time range is within operational hours (06:00–23:00)
+    private static void ValidateSearchParams(SearchRoomsDto dto)
+    {
+        var open  = new TimeOnly(6,  0);
+        var close = new TimeOnly(23, 0);
+
+        if (dto.StartTime < open || dto.EndTime > close)
+            throw new ArgumentException("Зали працюють з 06:00 до 23:00");
+
+        if (dto.StartTime >= dto.EndTime)
+            throw new ArgumentException("Час початку повинен бути раніше часу закінчення");
+    }
+
     // Maps a Room entity to RoomResponseDto
     private static RoomResponseDto MapToDto(Room room) => new()
     {

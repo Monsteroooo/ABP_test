@@ -65,4 +65,23 @@ public class RoomsController(IRoomService roomService) : ControllerBase
             return Conflict(new { message = ex.Message });
         }
     }
+
+    /// <summary>Returns a list of available rooms for the given date, time range and capacity.</summary>
+    /// <response code="200">List of available rooms (may be empty).</response>
+    /// <response code="400">Invalid search parameters.</response>
+    [HttpGet("available")]
+    [ProducesResponseType(typeof(IEnumerable<RoomResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SearchAvailableRooms([FromQuery] SearchRoomsDto dto)
+    {
+        try
+        {
+            var rooms = await roomService.SearchAvailableRoomsAsync(dto);
+            return Ok(rooms);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }
