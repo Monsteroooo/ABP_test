@@ -1,4 +1,6 @@
 using ABP_test.Data;
+using ABP_test.Services;
+using ABP_test.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +11,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<IRoomService, RoomService>();
 
 var app = builder.Build();
 
