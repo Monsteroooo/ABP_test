@@ -15,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPricingService, PricingService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 var app = builder.Build();
 
