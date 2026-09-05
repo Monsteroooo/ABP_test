@@ -5,4 +5,5 @@ namespace ABP_test.Services.Interfaces;
 public interface IRoomService
 {
     Task<RoomResponseDto> CreateRoomAsync(CreateRoomDto dto);
+    Task<RoomResponseDto> UpdateRoomAsync(int id, UpdateRoomDto dto);
 }
