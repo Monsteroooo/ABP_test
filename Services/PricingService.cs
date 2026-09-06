@@ -8,10 +8,6 @@ namespace ABP_test.Services;
 /// </summary>
 public class PricingService : IPricingService
 {
-    // Operational hours boundaries
-    private static readonly TimeOnly Open  = new(6,  0);
-    private static readonly TimeOnly Close = new(23, 0);
-
     // Tariff time boundaries
     private static readonly TimeOnly MorningStart = new(6,  0);
     private static readonly TimeOnly MorningEnd   = new(9,  0);
