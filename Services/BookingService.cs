@@ -16,7 +16,7 @@ public class BookingService(AppDbContext db, IPricingService pricingService) : I
         var startTime = dto.Date.ToDateTime(dto.StartTime);
         var endTime   = startTime.AddHours((double)dto.DurationHours);
 
-        ValidateBookingParams(dto, endTime);
+        ValidateBookingParams(dto, startTime, endTime);
 
         var room = await db.Rooms.FindAsync(dto.RoomId)
             ?? throw new KeyNotFoundException($"Зал з ID {dto.RoomId} не знайдено");
@@ -49,9 +49,14 @@ public class BookingService(AppDbContext db, IPricingService pricingService) : I
     }
 
     // Validates operational hours and duration step
-    private static void ValidateBookingParams(CreateBookingDto dto, DateTime endTime)
+    private static void ValidateBookingParams(CreateBookingDto dto, DateTime startDateTime, DateTime endDateTime)
     {
-        if (dto.StartTime < Open || TimeOnly.FromDateTime(endTime) > Close)
+        // Crosses midnight or ends after 23:00
+        // TimeOnly wraps around (23:00 + 1h = 00:00 < 23:00) so we compare DateTime.Date instead
+        var crossesMidnight = endDateTime.Date > startDateTime.Date;
+        var endTimeOnly     = TimeOnly.FromDateTime(endDateTime);
+
+        if (dto.StartTime < Open || crossesMidnight || endTimeOnly > Close)
             throw new ArgumentException("Бронювання можливе тільки з 06:00 до 23:00");
 
         if (dto.DurationHours % 0.5m != 0)
